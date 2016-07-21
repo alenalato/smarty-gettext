@@ -119,16 +119,16 @@ function smarty_block_t($params, $text) {
 	if (isset($count) && isset($plural)) {
 		// use specified textdomain if available
 		if (isset($domain)) {
-			$text = dnp__($domain, null, $text, $plural, $count);
+			$text = dnp__($domain, $context, $text, $plural, $count);
 		} else {
-			$text = n__($text, $plural, $count);
+			$text = np__($context, $text, $plural, $count);
 		}
 	} else {
 		// use specified textdomain if available
 		if (isset($domain)) {
-			$text = d__($domain, $text);
+			$text = dp__($domain, $context, $text);
 		} else {
-			$text = __($text);
+			$text = p__($context, $text);
 		}
 	}
 

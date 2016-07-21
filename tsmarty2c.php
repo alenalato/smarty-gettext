@@ -113,9 +113,32 @@ function do_file($outfile, $file) {
 	$msgids = array();
 	$msgids_plural = array();
 	for ($i = 0; $i < count($matches[0]); $i++) {
-		if (preg_match('/plural\s*=\s*["\']?\s*(.[^\"\']*)\s*["\']?/', $matches[2][$i][0], $match)) {
+		if (preg_match('/plural\s*=\s*("([^"\\\]*(\\.[^"\\\]*)*)"|\'([^\'\\\]*(\\.[^\'\\\]*)*)\')/', $matches[2][$i][0], $match)) {
 			$msgid = $matches[3][$i][0];
-			$msgids_plural[$msgid] = $match[1];
+			if (isset($match[4])) {
+				$msgids_plural[$msgid] = $match[4];
+			}
+			else {
+				$msgids_plural[$msgid] = $match[2];
+			}
+		} else {
+			$msgid = $matches[3][$i][0];
+		}
+
+		$lineno = lineno_from_offset($content, $matches[2][$i][1]);
+		$msgids[$msgid][] = "$file:$lineno";
+	}
+
+	$msgids_context = array();
+	for ($i = 0; $i < count($matches[0]); $i++) {
+		if (preg_match('/context\s*=\s*("([^"\\\]*(\\.[^"\\\]*)*)"|\'([^\'\\\]*(\\.[^\'\\\]*)*)\')/', $matches[2][$i][0], $match)) {
+			$msgid = $matches[3][$i][0];
+			if (isset($match[4])) {
+				$msgids_context[$msgid] = $match[4];
+			}
+			else {
+				$msgids_context[$msgid] = $match[2];
+			}
 		} else {
 			$msgid = $matches[3][$i][0];
 		}
@@ -128,6 +151,9 @@ function do_file($outfile, $file) {
 	echo MSGID_HEADER;
 	foreach ($msgids as $msgid => $files) {
 		echo "#: ", join(' ', $files), "\n";
+		if (isset($msgids_context[$msgid])) {
+		  echo 'msgctxt "' . fs($msgids_context[$msgid]) . '"', "\n";
+		}
 		if (isset($msgids_plural[$msgid])) {
 			echo 'msgid "' . fs($msgid) . '"', "\n";
 			echo 'msgid_plural "' . fs($msgids_plural[$msgid]) . '"', "\n";
